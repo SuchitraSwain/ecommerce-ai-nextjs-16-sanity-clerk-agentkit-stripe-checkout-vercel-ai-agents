@@ -330,8 +330,12 @@ components/
     Dashboard.tsx
 
 lib/
-  store/cart.ts           # Zustand cart store
-  sanity/queries.ts       # GROQ queries
+  store/
+    cart.ts               # Zustand cart store
+    useStore.ts           # SSR-safe store hook (Next.js hydration fix)
+    createSelectors.ts    # Auto-generating selectors utility
+  sanity/
+    queries.ts            # GROQ queries
 
 sanity/
   schemaTypes/
@@ -371,4 +375,15 @@ Execute phases sequentially. Each phase is designed to be testable before moving
 | Admin Auth (`/(admin)`) | Sanity (via App SDK) |
 | Studio Auth (`/studio`) | Sanity |
 | Payments | Stripe Checkout (redirect) |
+
+---
+
+## Coding Conventions
+
+| Convention | Rule |
+|------------|------|
+| Barrel Exports | **Do NOT use** `index.ts` barrel exports. Import directly from source files. |
+| Imports | Use direct imports: `import { x } from "./store/cart"` not `from "./store"` |
+| Quotes | Double quotes for strings |
+| Semicolons | Required |
 
