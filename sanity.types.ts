@@ -622,6 +622,32 @@ export type OUT_OF_STOCK_PRODUCTS_QUERYResult = Array<{
     } | null;
   } | null;
 }>;
+// Variable: AI_SEARCH_PRODUCTS_QUERY
+// Query: *[  _type == "product"  && (    $searchQuery == ""    || name match $searchQuery + "*"    || description match $searchQuery + "*"    || category->title match $searchQuery + "*"  )  && ($categorySlug == "" || category->slug.current == $categorySlug)  && ($material == "" || material == $material)  && ($color == "" || color == $color)  && ($minPrice == 0 || price >= $minPrice)  && ($maxPrice == 0 || price <= $maxPrice)] | order(name asc) [0...20] {  _id,  name,  "slug": slug.current,  description,  price,  "image": images[0]{    asset->{      _id,      url    }  },  category->{    _id,    title,    "slug": slug.current  },  material,  color,  dimensions,  stock,  featured,  assemblyRequired}
+export type AI_SEARCH_PRODUCTS_QUERYResult = Array<{
+  _id: string;
+  name: string | null;
+  slug: string | null;
+  description: string | null;
+  price: number | null;
+  image: {
+    asset: {
+      _id: string;
+      url: string | null;
+    } | null;
+  } | null;
+  category: {
+    _id: string;
+    title: string | null;
+    slug: string | null;
+  } | null;
+  material: "fabric" | "glass" | "leather" | "metal" | "wood" | null;
+  color: "black" | "grey" | "natural" | "oak" | "walnut" | "white" | null;
+  dimensions: string | null;
+  stock: number | null;
+  featured: boolean | null;
+  assemblyRequired: boolean | null;
+}>;
 
 // Source: ./lib/sanity/queries/stats.ts
 // Variable: PRODUCT_COUNT_QUERY
@@ -658,6 +684,7 @@ declare module "@sanity/client" {
     "*[\n  _type == \"product\"\n  && _id in $ids\n] {\n  _id,\n  name,\n  \"slug\": slug.current,\n  price,\n  \"image\": images[0]{\n    asset->{\n      _id,\n      url\n    },\n    hotspot\n  },\n  stock\n}": PRODUCTS_BY_IDS_QUERYResult;
     "*[\n  _type == \"product\"\n  && stock > 0\n  && stock <= 5\n] | order(stock asc) {\n  _id,\n  name,\n  \"slug\": slug.current,\n  stock,\n  \"image\": images[0]{\n    asset->{\n      _id,\n      url\n    }\n  }\n}": LOW_STOCK_PRODUCTS_QUERYResult;
     "*[\n  _type == \"product\"\n  && stock == 0\n] | order(name asc) {\n  _id,\n  name,\n  \"slug\": slug.current,\n  \"image\": images[0]{\n    asset->{\n      _id,\n      url\n    }\n  }\n}": OUT_OF_STOCK_PRODUCTS_QUERYResult;
+    "*[\n  _type == \"product\"\n  && (\n    $searchQuery == \"\"\n    || name match $searchQuery + \"*\"\n    || description match $searchQuery + \"*\"\n    || category->title match $searchQuery + \"*\"\n  )\n  && ($categorySlug == \"\" || category->slug.current == $categorySlug)\n  && ($material == \"\" || material == $material)\n  && ($color == \"\" || color == $color)\n  && ($minPrice == 0 || price >= $minPrice)\n  && ($maxPrice == 0 || price <= $maxPrice)\n] | order(name asc) [0...20] {\n  _id,\n  name,\n  \"slug\": slug.current,\n  description,\n  price,\n  \"image\": images[0]{\n    asset->{\n      _id,\n      url\n    }\n  },\n  category->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n  material,\n  color,\n  dimensions,\n  stock,\n  featured,\n  assemblyRequired\n}": AI_SEARCH_PRODUCTS_QUERYResult;
     "count(*[_type == \"product\"])": PRODUCT_COUNT_QUERYResult;
     "count(*[_type == \"order\"])": ORDER_COUNT_QUERYResult;
     "math::sum(*[\n  _type == \"order\"\n  && status in [\"paid\", \"shipped\", \"delivered\"]\n].total)": TOTAL_REVENUE_QUERYResult;

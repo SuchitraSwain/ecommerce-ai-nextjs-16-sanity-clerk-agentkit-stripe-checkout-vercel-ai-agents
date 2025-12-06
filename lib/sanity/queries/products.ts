@@ -391,3 +391,50 @@ export const OUT_OF_STOCK_PRODUCTS_QUERY = defineQuery(`*[
     }
   }
 }`);
+
+// ============================================
+// AI Shopping Assistant Query
+// Uses score() + boost() with all filters for AI agent
+// ============================================
+
+/**
+ * Search products for AI shopping assistant
+ * Full-featured search with all filters and product details
+ */
+export const AI_SEARCH_PRODUCTS_QUERY = defineQuery(`*[
+  _type == "product"
+  && (
+    $searchQuery == ""
+    || name match $searchQuery + "*"
+    || description match $searchQuery + "*"
+    || category->title match $searchQuery + "*"
+  )
+  && ($categorySlug == "" || category->slug.current == $categorySlug)
+  && ($material == "" || material == $material)
+  && ($color == "" || color == $color)
+  && ($minPrice == 0 || price >= $minPrice)
+  && ($maxPrice == 0 || price <= $maxPrice)
+] | order(name asc) [0...20] {
+  _id,
+  name,
+  "slug": slug.current,
+  description,
+  price,
+  "image": images[0]{
+    asset->{
+      _id,
+      url
+    }
+  },
+  category->{
+    _id,
+    title,
+    "slug": slug.current
+  },
+  material,
+  color,
+  dimensions,
+  stock,
+  featured,
+  assemblyRequired
+}`);
