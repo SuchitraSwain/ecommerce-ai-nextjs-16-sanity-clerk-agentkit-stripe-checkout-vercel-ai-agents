@@ -204,4 +204,3 @@ export function CheckoutClient() {
     </div>
   );
 }
-

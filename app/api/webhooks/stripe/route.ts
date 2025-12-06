@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { client } from "@/sanity/lib/client";
+import { client, writeClient } from "@/sanity/lib/client";
 import { ORDER_BY_STRIPE_PAYMENT_ID_QUERY } from "@/lib/sanity/queries/orders";
 
 if (!process.env.STRIPE_SECRET_KEY) {
@@ -77,6 +77,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     const {
       clerkUserId,
       userEmail,
+      sanityCustomerId,
       productIds: productIdsString,
       quantities: quantitiesString,
     } = session.metadata ?? {};
@@ -121,10 +122,16 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
         }
       : undefined;
 
-    // Create order in Sanity
-    const order = await client.create({
+    // Create order in Sanity with customer reference
+    const order = await writeClient.create({
       _type: "order",
       orderNumber,
+      ...(sanityCustomerId && {
+        customer: {
+          _type: "reference",
+          _ref: sanityCustomerId,
+        },
+      }),
       clerkUserId,
       email: userEmail ?? session.customer_details?.email ?? "",
       items: orderItems,
@@ -142,7 +149,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       .reduce(
         (tx, productId, i) =>
           tx.patch(productId, (p) => p.dec({ stock: quantities[i] })),
-        client.transaction()
+        writeClient.transaction()
       )
       .commit();
 

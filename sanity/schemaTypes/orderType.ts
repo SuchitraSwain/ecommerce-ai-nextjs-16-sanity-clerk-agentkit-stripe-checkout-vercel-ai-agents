@@ -88,6 +88,13 @@ export const orderType = defineType({
       },
     }),
     defineField({
+      name: "customer",
+      type: "reference",
+      to: [{ type: "customer" }],
+      group: "customer",
+      description: "Reference to the customer record",
+    }),
+    defineField({
       name: "clerkUserId",
       type: "string",
       group: "customer",

@@ -1,5 +1,3 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import { CheckoutClient } from "./CheckoutClient";
 
 export const metadata = {
@@ -7,13 +5,6 @@ export const metadata = {
   description: "Complete your purchase",
 };
 
-export default async function CheckoutPage() {
-  const { userId } = await auth();
-
-  if (!userId) {
-    redirect("/sign-in?redirect_url=/checkout");
-  }
-
+export default function CheckoutPage() {
   return <CheckoutClient />;
 }
-

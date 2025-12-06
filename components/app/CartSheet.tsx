@@ -26,8 +26,8 @@ export function CartSheet() {
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && closeCart()}>
-      <SheetContent className="flex w-full flex-col sm:max-w-lg">
-        <SheetHeader>
+      <SheetContent className="flex w-full flex-col sm:max-w-lg gap-0">
+        <SheetHeader className="border-b border-zinc-200 dark:border-zinc-800">
           <SheetTitle className="flex items-center gap-2">
             <ShoppingBag className="h-5 w-5" />
             Shopping Cart ({totalItems})
@@ -60,8 +60,8 @@ export function CartSheet() {
             )}
 
             {/* Cart Items */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="space-y-2 py-2">
+            <div className="flex-1 overflow-y-auto px-5">
+              <div className="space-y-2 py-2 divide-y divide-zinc-200 dark:divide-zinc-800">
                 {items.map((item) => (
                   <CartItem
                     key={item.productId}

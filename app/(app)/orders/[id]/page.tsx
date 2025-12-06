@@ -1,54 +1,16 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import {
-  ArrowLeft,
-  Package,
-  CreditCard,
-  MapPin,
-  CheckCircle,
-  Clock,
-  Truck,
-  XCircle,
-} from "lucide-react";
+import { auth } from "@clerk/nextjs/server";
+import { ArrowLeft, CreditCard, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { getOrderById } from "@/lib/actions/orders";
+import { sanityFetch } from "@/sanity/lib/live";
+import { ORDER_BY_ID_QUERY } from "@/lib/sanity/queries/orders";
+import { getOrderStatus } from "@/lib/constants/orderStatus";
 
 export const metadata = {
   title: "Order Details | Furniture Shop",
   description: "View your order details",
-};
-
-const statusConfig: Record<
-  string,
-  { color: string; icon: React.ElementType; label: string }
-> = {
-  pending: {
-    color: "bg-yellow-100 text-yellow-800",
-    icon: Clock,
-    label: "Pending",
-  },
-  paid: {
-    color: "bg-green-100 text-green-800",
-    icon: CheckCircle,
-    label: "Paid",
-  },
-  shipped: {
-    color: "bg-blue-100 text-blue-800",
-    icon: Truck,
-    label: "Shipped",
-  },
-  delivered: {
-    color: "bg-zinc-100 text-zinc-800",
-    icon: Package,
-    label: "Delivered",
-  },
-  cancelled: {
-    color: "bg-red-100 text-red-800",
-    icon: XCircle,
-    label: "Cancelled",
-  },
 };
 
 interface OrderPageProps {
@@ -59,17 +21,17 @@ export default async function OrderDetailPage({ params }: OrderPageProps) {
   const { id } = await params;
   const { userId } = await auth();
 
-  if (!userId) {
-    redirect(`/sign-in?redirect_url=/orders/${id}`);
-  }
+  const { data: order } = await sanityFetch({
+    query: ORDER_BY_ID_QUERY,
+    params: { id },
+  });
 
-  const { success, order, error } = await getOrderById(id);
-
-  if (!success || !order) {
+  // Verify order exists and belongs to current user
+  if (!order || order.clerkUserId !== userId) {
     notFound();
   }
 
-  const status = statusConfig[order.status ?? "pending"] ?? statusConfig.pending;
+  const status = getOrderStatus(order.status);
   const StatusIcon = status.icon;
 
   return (
@@ -108,9 +70,9 @@ export default async function OrderDetailPage({ params }: OrderPageProps) {
         </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-3">
+      <div className="grid gap-8 lg:grid-cols-5">
         {/* Order Items */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-3">
           <div className="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
             <div className="border-b border-zinc-200 px-6 py-4 dark:border-zinc-800">
               <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">
@@ -118,8 +80,8 @@ export default async function OrderDetailPage({ params }: OrderPageProps) {
               </h2>
             </div>
             <div className="divide-y divide-zinc-200 dark:divide-zinc-800">
-              {order.items?.map((item, index) => (
-                <div key={index} className="flex gap-4 px-6 py-4">
+              {order.items?.map((item) => (
+                <div key={item._key} className="flex gap-4 px-6 py-4">
                   {/* Image */}
                   <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-800">
                     {item.product?.image?.asset?.url ? (
@@ -155,7 +117,10 @@ export default async function OrderDetailPage({ params }: OrderPageProps) {
                   {/* Price */}
                   <div className="text-right">
                     <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                      £{((item.priceAtPurchase ?? 0) * (item.quantity ?? 1)).toFixed(2)}
+                      £
+                      {(
+                        (item.priceAtPurchase ?? 0) * (item.quantity ?? 1)
+                      ).toFixed(2)}
                     </p>
                     {(item.quantity ?? 1) > 1 && (
                       <p className="text-sm text-zinc-500">
@@ -170,7 +135,7 @@ export default async function OrderDetailPage({ params }: OrderPageProps) {
         </div>
 
         {/* Order Summary & Details */}
-        <div className="space-y-6">
+        <div className="space-y-6 lg:col-span-2">
           {/* Summary */}
           <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-950">
             <h2 className="font-semibold text-zinc-900 dark:text-zinc-100">
@@ -187,7 +152,9 @@ export default async function OrderDetailPage({ params }: OrderPageProps) {
               </div>
               <div className="border-t border-zinc-200 pt-3 dark:border-zinc-800">
                 <div className="flex justify-between font-semibold">
-                  <span className="text-zinc-900 dark:text-zinc-100">Total</span>
+                  <span className="text-zinc-900 dark:text-zinc-100">
+                    Total
+                  </span>
                   <span className="text-zinc-900 dark:text-zinc-100">
                     £{(order.total ?? 0).toFixed(2)}
                   </span>
@@ -227,19 +194,19 @@ export default async function OrderDetailPage({ params }: OrderPageProps) {
                 Payment
               </h2>
             </div>
-            <div className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-zinc-500 dark:text-zinc-400">Status</span>
-                <span className="font-medium capitalize text-green-600">
+            <div className="mt-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-light tracking-wide">Status</span>
+                <span className="text-sm font-medium capitalize text-green-600">
                   {order.status}
                 </span>
               </div>
               {order.email && (
-                <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">Email</span>
-                  <span className="text-zinc-900 dark:text-zinc-100">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-light tracking-wide">Email</p>
+                  <p className="min-w-0 truncate text-sm text-zinc-900 dark:text-zinc-100">
                     {order.email}
-                  </span>
+                  </p>
                 </div>
               )}
             </div>
@@ -249,4 +216,3 @@ export default async function OrderDetailPage({ params }: OrderPageProps) {
     </div>
   );
 }
-

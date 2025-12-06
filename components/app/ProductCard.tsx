@@ -4,13 +4,10 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  useCartActions,
-  useCartItems,
-} from "@/lib/store/cart-store-provider";
 import { cn } from "@/lib/utils";
+import { AddToCartButton } from "@/components/app/AddToCartButton";
+import { StockBadge } from "@/components/app/StockBadge";
 import type { FILTER_PRODUCTS_BY_NAME_QUERYResult } from "@/sanity.types";
 
 type Product = FILTER_PRODUCTS_BY_NAME_QUERYResult[number];
@@ -20,10 +17,8 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const { addItem, openCart } = useCartActions();
-  const cartItems = useCartItems();
   const [hoveredImageIndex, setHoveredImageIndex] = useState<number | null>(
-    null
+    null,
   );
 
   const images = product.images ?? [];
@@ -34,25 +29,8 @@ export function ProductCard({ product }: ProductCardProps) {
       : mainImageUrl;
 
   const stock = product.stock ?? 0;
-  const cartItem = cartItems.find((item) => item.productId === product._id);
-  const quantityInCart = cartItem?.quantity ?? 0;
-  const availableToAdd = stock - quantityInCart;
-
   const isOutOfStock = stock <= 0;
-  const isMaxInCart = availableToAdd <= 0 && !isOutOfStock;
   const hasMultipleImages = images.length > 1;
-
-  const handleAddToCart = () => {
-    if (isOutOfStock || isMaxInCart) return;
-
-    addItem({
-      productId: product._id,
-      name: product.name ?? "Unknown Product",
-      price: product.price ?? 0,
-      image: mainImageUrl ?? undefined,
-    });
-    openCart();
-  };
 
   return (
     <Card className="group overflow-hidden border-zinc-200 bg-white transition-all hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-950">
@@ -90,7 +68,7 @@ export function ProductCard({ product }: ProductCardProps) {
                 "relative h-12 flex-1 overflow-hidden rounded-md transition-all",
                 hoveredImageIndex === index
                   ? "ring-2 ring-zinc-900 dark:ring-zinc-100"
-                  : "opacity-60 hover:opacity-100"
+                  : "opacity-60 hover:opacity-100",
               )}
               onMouseEnter={() => setHoveredImageIndex(index)}
               onMouseLeave={() => setHoveredImageIndex(null)}
@@ -126,25 +104,15 @@ export function ProductCard({ product }: ProductCardProps) {
       </CardContent>
 
       <CardFooter className="flex flex-col gap-2 p-4 pt-0">
-        {quantityInCart > 0 && (
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            {quantityInCart} in basket
-          </p>
-        )}
-        <Button
-          onClick={handleAddToCart}
-          disabled={isOutOfStock || isMaxInCart}
-          className="w-full"
-          variant={isOutOfStock || isMaxInCart ? "secondary" : "default"}
-        >
-          {isOutOfStock
-            ? "Out of Stock"
-            : isMaxInCart
-              ? "Max in Basket"
-              : "Add to Basket"}
-        </Button>
+        <StockBadge productId={product._id} stock={stock} className="mx-auto" />
+        <AddToCartButton
+          productId={product._id}
+          name={product.name ?? "Unknown Product"}
+          price={product.price ?? 0}
+          image={mainImageUrl ?? undefined}
+          stock={stock}
+        />
       </CardFooter>
     </Card>
   );
 }
-

@@ -14,7 +14,8 @@ export const ORDERS_BY_USER_QUERY = defineQuery(`*[
   status,
   createdAt,
   "itemCount": count(items),
-  "itemNames": items[].product->name
+  "itemNames": items[].product->name,
+  "itemImages": items[].product->images[0].asset->url
 }`);
 
 /**

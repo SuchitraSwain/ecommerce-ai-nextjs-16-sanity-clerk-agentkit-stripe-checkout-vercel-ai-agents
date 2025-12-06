@@ -27,4 +27,3 @@ export default async function SuccessPage({ searchParams }: SuccessPageProps) {
 
   return <SuccessClient session={result.session} />;
 }
-

@@ -1,32 +1,25 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import { auth } from "@clerk/nextjs/server";
 import { Package, ArrowRight, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { getUserOrders } from "@/lib/actions/orders";
+import { sanityFetch } from "@/sanity/lib/live";
+import { ORDERS_BY_USER_QUERY } from "@/lib/sanity/queries/orders";
+import { getOrderStatus } from "@/lib/constants/orderStatus";
 
 export const metadata = {
   title: "Your Orders | Furniture Shop",
   description: "View your order history",
 };
 
-const statusColors: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-800",
-  paid: "bg-green-100 text-green-800",
-  shipped: "bg-blue-100 text-blue-800",
-  delivered: "bg-zinc-100 text-zinc-800",
-  cancelled: "bg-red-100 text-red-800",
-};
-
 export default async function OrdersPage() {
   const { userId } = await auth();
 
-  if (!userId) {
-    redirect("/sign-in?redirect_url=/orders");
-  }
-
-  const { orders } = await getUserOrders();
+  const { data: orders } = await sanityFetch({
+    query: ORDERS_BY_USER_QUERY,
+    params: { clerkUserId: userId ?? "" },
+  });
 
   if (orders.length === 0) {
     return (
@@ -59,69 +52,123 @@ export default async function OrdersPage() {
       </div>
 
       <div className="space-y-4">
-        {orders.map((order) => (
-          <Link
-            key={order._id}
-            href={`/orders/${order._id}`}
-            className="block rounded-lg border border-zinc-200 bg-white p-6 transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-950"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
-                  <ShoppingBag className="h-6 w-6 text-zinc-600 dark:text-zinc-400" />
-                </div>
-                <div>
-                  <p className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    {order.orderNumber}
-                  </p>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                    {order.createdAt
-                      ? new Date(order.createdAt).toLocaleDateString("en-GB", {
-                          day: "numeric",
-                          month: "long",
-                          year: "numeric",
-                        })
-                      : "Date unknown"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="text-right">
-                  <p className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    £{(order.total ?? 0).toFixed(2)}
-                  </p>
-                  <Badge
-                    className={`mt-1 capitalize ${statusColors[order.status ?? "pending"] ?? statusColors.pending}`}
-                  >
-                    {order.status}
-                  </Badge>
-                </div>
-                <ArrowRight className="h-5 w-5 text-zinc-400" />
-              </div>
-            </div>
+        {orders.map((order) => {
+          const status = getOrderStatus(order.status);
+          const StatusIcon = status.icon;
+          const images = (order.itemImages ?? []).filter(Boolean).slice(0, 4);
+          const extraCount = (order.itemCount ?? 0) - images.length;
 
-            {/* Order Items Preview */}
-            {(order.itemCount ?? 0) > 0 && (
-              <div className="mt-4 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
-                <span>
-                  {order.itemCount}{" "}
-                  {order.itemCount === 1 ? "item" : "items"}
-                </span>
-                {order.itemNames && order.itemNames.length > 0 && (
-                  <>
-                    <span>·</span>
-                    <span className="truncate">
-                      {order.itemNames.slice(0, 3).filter(Boolean).join(", ")}
-                      {order.itemNames.length > 3 && "..."}
-                    </span>
-                  </>
-                )}
+          return (
+            <Link
+              key={order._id}
+              href={`/orders/${order._id}`}
+              className="group block rounded-xl border border-zinc-200 bg-white transition-all hover:border-zinc-300 hover:shadow-lg dark:border-zinc-800 dark:bg-zinc-950 dark:hover:border-zinc-700"
+            >
+              <div className="flex gap-5 p-5">
+                {/* Left: Product Images Stack */}
+                <div className="relative flex h-20 w-20 shrink-0 items-center justify-center">
+                  {images.length > 0 ? (
+                    <div className="relative h-full w-full">
+                      {images.map((imageUrl, idx) => (
+                        <div
+                          key={`${order._id}-img-${idx}`}
+                          className="absolute overflow-hidden rounded-lg border-2 border-white bg-zinc-100 shadow-sm dark:border-zinc-900 dark:bg-zinc-800"
+                          style={{
+                            width: images.length === 1 ? "100%" : "56px",
+                            height: images.length === 1 ? "100%" : "56px",
+                            top: images.length === 1 ? 0 : `${idx * 6}px`,
+                            left: images.length === 1 ? 0 : `${idx * 6}px`,
+                            zIndex: images.length - idx,
+                          }}
+                        >
+                          <Image
+                            src={imageUrl as string}
+                            alt=""
+                            fill
+                            className="object-cover"
+                            sizes="80px"
+                          />
+                        </div>
+                      ))}
+                      {extraCount > 0 && (
+                        <div
+                          className="absolute flex items-center justify-center rounded-lg border-2 border-white bg-zinc-200 text-xs font-medium text-zinc-600 dark:border-zinc-900 dark:bg-zinc-700 dark:text-zinc-300"
+                          style={{
+                            width: "56px",
+                            height: "56px",
+                            top: `${Math.min(images.length, 3) * 6}px`,
+                            left: `${Math.min(images.length, 3) * 6}px`,
+                            zIndex: 0,
+                          }}
+                        >
+                          +{extraCount}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                      <ShoppingBag className="h-8 w-8 text-zinc-400" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Right: Order Details */}
+                <div className="flex min-w-0 flex-1 flex-col justify-between">
+                  {/* Top: Order Info + Status */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-zinc-900 dark:text-zinc-100">
+                        Order #{order.orderNumber?.split("-").pop()}
+                      </p>
+                      <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
+                        {order.createdAt
+                          ? new Date(order.createdAt).toLocaleDateString(
+                              "en-GB",
+                              {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                              },
+                            )
+                          : "Date unknown"}
+                      </p>
+                    </div>
+                    <Badge
+                      className={`${status.color} shrink-0 flex items-center gap-1`}
+                    >
+                      <StatusIcon className="h-3 w-3" />
+                      {status.label}
+                    </Badge>
+                  </div>
+
+                  {/* Bottom: Items + Total */}
+                  <div className="mt-2 flex items-end justify-between">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      {order.itemCount}{" "}
+                      {order.itemCount === 1 ? "item" : "items"}
+                    </p>
+                    <p className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                      £{(order.total ?? 0).toFixed(2)}
+                    </p>
+                  </div>
+                </div>
               </div>
-            )}
-          </Link>
-        ))}
+
+              {/* Footer: View Details */}
+              <div className="flex items-center justify-between border-t border-zinc-100 px-5 py-3 dark:border-zinc-800">
+                <p className="truncate text-sm text-zinc-500 dark:text-zinc-400">
+                  {order.itemNames?.slice(0, 2).filter(Boolean).join(", ")}
+                  {(order.itemNames?.length ?? 0) > 2 && "..."}
+                </p>
+                <span className="flex shrink-0 items-center gap-1 text-sm font-medium text-zinc-500 transition-colors group-hover:text-zinc-900 dark:text-zinc-400 dark:group-hover:text-zinc-100">
+                  View order
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </span>
+              </div>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );
 }
-

@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useTotalPrice, useTotalItems } from "@/lib/store/cart-store-provider";
+import {
+  useTotalPrice,
+  useTotalItems,
+  useCartActions,
+} from "@/lib/store/cart-store-provider";
 
 interface CartSummaryProps {
   hasStockIssues?: boolean;
@@ -11,6 +15,7 @@ interface CartSummaryProps {
 export function CartSummary({ hasStockIssues = false }: CartSummaryProps) {
   const totalPrice = useTotalPrice();
   const totalItems = useTotalItems();
+  const { closeCart } = useCartActions();
 
   if (totalItems === 0) return null;
 
@@ -30,7 +35,9 @@ export function CartSummary({ hasStockIssues = false }: CartSummaryProps) {
           </Button>
         ) : (
           <Button asChild className="w-full">
-            <Link href="/checkout">Checkout</Link>
+            <Link href="/checkout" onClick={() => closeCart()}>
+              Checkout
+            </Link>
           </Button>
         )}
       </div>

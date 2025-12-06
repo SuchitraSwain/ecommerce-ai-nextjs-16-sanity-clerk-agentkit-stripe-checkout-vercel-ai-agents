@@ -4,6 +4,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import Stripe from "stripe";
 import { client } from "@/sanity/lib/client";
 import { PRODUCTS_BY_IDS_QUERY } from "@/lib/sanity/queries/products";
+import { getOrCreateStripeCustomer } from "@/lib/actions/customer";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error("STRIPE_SECRET_KEY is not defined");
@@ -108,26 +109,93 @@ export async function createCheckoutSession(
         quantity,
       }));
 
-    // 6. Prepare metadata for webhook
+    // 6. Get or create Stripe customer
+    const userEmail = user.emailAddresses[0]?.emailAddress ?? "";
+    const userName =
+      `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || userEmail;
+
+    const { stripeCustomerId, sanityCustomerId } =
+      await getOrCreateStripeCustomer(userEmail, userName, userId);
+
+    // 7. Prepare metadata for webhook
     const metadata = {
       clerkUserId: userId,
-      userEmail: user.emailAddresses[0]?.emailAddress ?? "",
+      userEmail,
+      sanityCustomerId,
       productIds: validatedItems.map((i) => i.product._id).join(","),
       quantities: validatedItems.map((i) => i.quantity).join(","),
     };
 
-    // 7. Create Stripe Checkout Session
+    // 8. Create Stripe Checkout Session
+    // Priority: NEXT_PUBLIC_BASE_URL > Vercel URL > localhost
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+      "http://localhost:3000";
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
       line_items: lineItems,
-      customer_email: user.emailAddresses[0]?.emailAddress,
+      customer: stripeCustomerId,
       shipping_address_collection: {
-        allowed_countries: ["GB", "US", "CA", "AU", "DE", "FR", "ES", "IT"],
+        allowed_countries: [
+          "GB", // United Kingdom
+          "US", // United States
+          "CA", // Canada
+          "AU", // Australia
+          "NZ", // New Zealand
+          "IE", // Ireland
+          "DE", // Germany
+          "FR", // France
+          "ES", // Spain
+          "IT", // Italy
+          "NL", // Netherlands
+          "BE", // Belgium
+          "AT", // Austria
+          "CH", // Switzerland
+          "SE", // Sweden
+          "NO", // Norway
+          "DK", // Denmark
+          "FI", // Finland
+          "PT", // Portugal
+          "PL", // Poland
+          "CZ", // Czech Republic
+          "GR", // Greece
+          "HU", // Hungary
+          "RO", // Romania
+          "BG", // Bulgaria
+          "HR", // Croatia
+          "SI", // Slovenia
+          "SK", // Slovakia
+          "LT", // Lithuania
+          "LV", // Latvia
+          "EE", // Estonia
+          "LU", // Luxembourg
+          "MT", // Malta
+          "CY", // Cyprus
+          "JP", // Japan
+          "SG", // Singapore
+          "HK", // Hong Kong
+          "KR", // South Korea
+          "TW", // Taiwan
+          "MY", // Malaysia
+          "TH", // Thailand
+          "IN", // India
+          "AE", // United Arab Emirates
+          "SA", // Saudi Arabia
+          "IL", // Israel
+          "ZA", // South Africa
+          "BR", // Brazil
+          "MX", // Mexico
+          "AR", // Argentina
+          "CL", // Chile
+          "CO", // Colombia
+        ],
       },
       metadata,
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/checkout`,
+      success_url: `${baseUrl}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${baseUrl}/checkout`,
     });
 
     return { success: true, url: session.url ?? undefined };

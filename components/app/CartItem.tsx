@@ -2,9 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { AlertCircle, Minus, Plus, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCartActions } from "@/lib/store/cart-store-provider";
+import { AddToCartButton } from "@/components/app/AddToCartButton";
+import { StockBadge } from "@/components/app/StockBadge";
 import { cn } from "@/lib/utils";
 import type { CartItem as CartItemType } from "@/lib/store/cart-store";
 import type { StockInfo } from "@/lib/hooks/useCartStock";
@@ -15,24 +17,12 @@ interface CartItemProps {
 }
 
 export function CartItem({ item, stockInfo }: CartItemProps) {
-  const { updateQuantity, removeItem } = useCartActions();
+  const { removeItem } = useCartActions();
 
   const isOutOfStock = stockInfo?.isOutOfStock ?? false;
   const exceedsStock = stockInfo?.exceedsStock ?? false;
-  const currentStock = stockInfo?.currentStock ?? Infinity;
+  const currentStock = stockInfo?.currentStock ?? 999;
   const hasIssue = isOutOfStock || exceedsStock;
-
-  // At max stock (can't add more)
-  const atMaxStock =
-    !isOutOfStock && !exceedsStock && item.quantity >= currentStock;
-
-  // Low stock warning (3 or fewer remaining after this purchase)
-  const remainingAfterPurchase = currentStock - item.quantity;
-  const isLowStock =
-    !isOutOfStock &&
-    !exceedsStock &&
-    currentStock <= 3 &&
-    remainingAfterPurchase >= 0;
 
   return (
     <div
@@ -90,71 +80,20 @@ export function CartItem({ item, stockInfo }: CartItemProps) {
           £{item.price.toFixed(2)}
         </p>
 
-        {/* Stock Messages */}
-        {isOutOfStock && (
-          <div className="mt-2 flex items-center gap-1.5 text-sm font-medium text-red-600 dark:text-red-400">
-            <AlertCircle className="h-4 w-4" />
-            Sold out — please remove this item
-          </div>
-        )}
-
-        {exceedsStock && !isOutOfStock && (
-          <div className="mt-2 flex items-center gap-1.5 text-sm font-medium text-amber-600 dark:text-amber-400">
-            <AlertCircle className="h-4 w-4" />
-            {currentStock === 1
-              ? "Only 1 left — please reduce to 1"
-              : `Only ${currentStock} in stock — please reduce quantity`}
-          </div>
-        )}
-
-        {atMaxStock && (
-          <div className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-            {currentStock === 1
-              ? "You've got the last one!"
-              : `You've got the last ${currentStock} in stock!`}
-          </div>
-        )}
-
-        {isLowStock && !atMaxStock && (
-          <div className="mt-2 text-xs text-amber-600 dark:text-amber-400">
-            {currentStock === 1
-              ? "Last one — grab it before it's gone!"
-              : currentStock === 2
-                ? "Only 2 left!"
-                : `Only ${currentStock} left`}
-          </div>
-        )}
-
-        {/* Quantity Controls */}
-        <div className="mt-2 flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-            disabled={isOutOfStock}
-          >
-            <Minus className="h-3 w-3" />
-            <span className="sr-only">Decrease quantity</span>
-          </Button>
-          <span
-            className={cn(
-              "w-8 text-center text-sm",
-              exceedsStock && "font-medium text-amber-600 dark:text-amber-400",
-            )}
-          >
-            {item.quantity}
-          </span>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-            disabled={isOutOfStock || item.quantity >= currentStock}
-          >
-            <Plus className="h-3 w-3" />
-            <span className="sr-only">Increase quantity</span>
-          </Button>
+        {/* Stock Badge & Quantity Controls */}
+        <div className="mt-2 flex flex-row justify-between items-center gap-2">
+          <StockBadge productId={item.productId} stock={currentStock} />
+          {!isOutOfStock && (
+            <div className="w-32 flex self-end ml-auto">
+              <AddToCartButton
+                productId={item.productId}
+                name={item.name}
+                price={item.price}
+                image={item.image}
+                stock={currentStock}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

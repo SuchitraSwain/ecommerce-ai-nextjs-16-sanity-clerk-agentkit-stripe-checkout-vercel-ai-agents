@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ShoppingBag, User } from "lucide-react";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { useCartActions, useTotalItems } from "@/lib/store/cart-store-provider";
 
@@ -50,16 +50,15 @@ export function Header() {
             />
           </SignedIn>
           <SignedOut>
-            <Button variant="ghost" size="icon" asChild>
-              <Link href="/sign-in">
+            <SignInButton mode="modal">
+              <Button variant="ghost" size="icon">
                 <User className="h-5 w-5" />
                 <span className="sr-only">Sign in</span>
-              </Link>
-            </Button>
+              </Button>
+            </SignInButton>
           </SignedOut>
         </div>
       </div>
     </header>
   );
 }
-
