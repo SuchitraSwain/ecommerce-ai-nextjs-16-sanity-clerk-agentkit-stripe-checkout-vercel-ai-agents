@@ -4,7 +4,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useTotalPrice, useTotalItems } from "@/lib/store/cart-store-provider";
 
-export function CartSummary() {
+interface CartSummaryProps {
+  hasStockIssues?: boolean;
+}
+
+export function CartSummary({ hasStockIssues = false }: CartSummaryProps) {
   const totalPrice = useTotalPrice();
   const totalItems = useTotalItems();
 
@@ -20,9 +24,15 @@ export function CartSummary() {
         Shipping calculated at checkout
       </p>
       <div className="mt-4">
-        <Button asChild className="w-full">
-          <Link href="/checkout">Checkout</Link>
-        </Button>
+        {hasStockIssues ? (
+          <Button disabled className="w-full">
+            Resolve stock issues to checkout
+          </Button>
+        ) : (
+          <Button asChild className="w-full">
+            <Link href="/checkout">Checkout</Link>
+          </Button>
+        )}
       </div>
       <div className="mt-3 text-center">
         <Link
@@ -35,4 +45,3 @@ export function CartSummary() {
     </div>
   );
 }
-
