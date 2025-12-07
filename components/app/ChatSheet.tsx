@@ -6,7 +6,11 @@ import { useAuth } from "@clerk/nextjs";
 import { Sparkles, Send, Loader2, X, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useIsChatOpen, useChatActions } from "@/lib/store/chat-store-provider";
+import {
+  useIsChatOpen,
+  useChatActions,
+  usePendingMessage,
+} from "@/lib/store/chat-store-provider";
 
 import {
   getMessageText,
@@ -18,7 +22,8 @@ import {
 
 export function ChatSheet() {
   const isOpen = useIsChatOpen();
-  const { closeChat } = useChatActions();
+  const { closeChat, clearPendingMessage } = useChatActions();
+  const pendingMessage = usePendingMessage();
   const { isSignedIn } = useAuth();
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -31,6 +36,14 @@ export function ChatSheet() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isLoading]);
+
+  // Handle pending message - send it when chat opens
+  useEffect(() => {
+    if (isOpen && pendingMessage && !isLoading) {
+      sendMessage({ text: pendingMessage });
+      clearPendingMessage();
+    }
+  }, [isOpen, pendingMessage, isLoading, sendMessage, clearPendingMessage]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

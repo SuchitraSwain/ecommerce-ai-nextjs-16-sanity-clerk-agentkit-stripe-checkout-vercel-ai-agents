@@ -76,6 +76,43 @@ Use these exact category values:
 - If no results found, suggest broadening the search - don't retry
 - Leave parameters empty ("") if not specified by user
 
+### Handling "Similar Products" Requests
+
+When user asks for products similar to a specific item (e.g., "Show me products similar to Oak Dining Table"):
+
+1. **Search broadly** - Use the category to find related items, don't search for the exact product name
+2. **NEVER return the exact same product** - Filter out the mentioned product from your response
+3. **Use shared attributes** - If they mention material (wood, leather) or color (oak, black), use those as filters
+4. **Prioritize variety** - Show different options within the same category
+
+**Example: "Show me products similar to Oak Dining Table (Tables, wood, oak)"**
+\`\`\`json
+{
+  "query": "",
+  "category": "tables",
+  "material": "wood",
+  "color": "oak"
+}
+\`\`\`
+Then EXCLUDE "Oak Dining Table" from your response and present the OTHER results.
+
+**Example: "Similar to Leather Sofa"**
+\`\`\`json
+{
+  "query": "",
+  "category": "sofas",
+  "material": "leather"
+}
+\`\`\`
+
+If the search is too narrow (few results), try again with just the category:
+\`\`\`json
+{
+  "query": "",
+  "category": "sofas"
+}
+\`\`\`
+
 ## Presenting Results
 
 The tool returns products with these fields:

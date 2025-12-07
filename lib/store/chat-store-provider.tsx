@@ -66,17 +66,31 @@ export const useChatStore = <T,>(selector: (store: ChatStore) => T): T => {
 export const useIsChatOpen = () => useChatStore((state) => state.isOpen);
 
 /**
+ * Get pending message
+ */
+export const usePendingMessage = () =>
+  useChatStore((state) => state.pendingMessage);
+
+/**
  * Get all chat actions
  * Actions are stable references from zustand, safe to destructure
  */
 export const useChatActions = () => {
   const openChat = useChatStore((state) => state.openChat);
+  const openChatWithMessage = useChatStore(
+    (state) => state.openChatWithMessage,
+  );
   const closeChat = useChatStore((state) => state.closeChat);
   const toggleChat = useChatStore((state) => state.toggleChat);
+  const clearPendingMessage = useChatStore(
+    (state) => state.clearPendingMessage,
+  );
 
   return {
     openChat,
+    openChatWithMessage,
     closeChat,
     toggleChat,
+    clearPendingMessage,
   };
 };
