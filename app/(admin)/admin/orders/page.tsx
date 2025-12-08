@@ -81,29 +81,25 @@ function OrderListContent({
   return (
     <>
       <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="min-w-[100px]">Order</TableHead>
-                <TableHead className="min-w-[150px]">Customer</TableHead>
-                <TableHead className="hidden text-center sm:table-cell">
-                  Items
-                </TableHead>
-                <TableHead className="min-w-[80px]">Total</TableHead>
-                <TableHead className="min-w-[100px]">Status</TableHead>
-                <TableHead className="hidden min-w-[100px] md:table-cell">
-                  Date
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map((handle) => (
-                <OrderRow key={handle.documentId} {...handle} />
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Order</TableHead>
+              <TableHead className="hidden sm:table-cell">Customer</TableHead>
+              <TableHead className="hidden text-center md:table-cell">
+                Items
+              </TableHead>
+              <TableHead className="hidden sm:table-cell">Total</TableHead>
+              <TableHead className="text-center sm:text-left">Status</TableHead>
+              <TableHead className="hidden md:table-cell">Date</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {orders.map((handle) => (
+              <OrderRow key={handle.documentId} {...handle} />
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
       {hasMore && (
@@ -124,29 +120,25 @@ function OrderListContent({
 function OrderListSkeleton() {
   return (
     <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="min-w-[100px]">Order</TableHead>
-              <TableHead className="min-w-[150px]">Customer</TableHead>
-              <TableHead className="hidden text-center sm:table-cell">
-                Items
-              </TableHead>
-              <TableHead className="min-w-[80px]">Total</TableHead>
-              <TableHead className="min-w-[100px]">Status</TableHead>
-              <TableHead className="hidden min-w-[100px] md:table-cell">
-                Date
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {[1, 2, 3, 4, 5].map((i) => (
-              <OrderRowSkeleton key={i} />
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Order</TableHead>
+            <TableHead className="hidden sm:table-cell">Customer</TableHead>
+            <TableHead className="hidden text-center md:table-cell">
+              Items
+            </TableHead>
+            <TableHead className="hidden sm:table-cell">Total</TableHead>
+            <TableHead className="text-center sm:text-left">Status</TableHead>
+            <TableHead className="hidden md:table-cell">Date</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <OrderRowSkeleton key={i} />
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }

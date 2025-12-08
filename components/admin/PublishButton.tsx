@@ -87,7 +87,7 @@ function PublishButtonContent({
       ) : (
         <>
           <Save className="mr-2 h-4 w-4" />
-          Publish Changes
+          Publish
         </>
       )}
     </Button>

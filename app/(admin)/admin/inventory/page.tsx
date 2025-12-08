@@ -85,27 +85,27 @@ function ProductListContent({
   return (
     <>
       <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-16">Image</TableHead>
-                <TableHead className="min-w-[150px]">Product</TableHead>
-                <TableHead className="w-28">Price</TableHead>
-                <TableHead className="w-28">Stock</TableHead>
-                <TableHead className="hidden w-16 sm:table-cell">
-                  Featured
-                </TableHead>
-                <TableHead className="w-[180px]">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {products.map((handle) => (
-                <ProductRow key={handle.documentId} {...handle} />
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="hidden w-16 sm:table-cell">Image</TableHead>
+              <TableHead>Product</TableHead>
+              <TableHead className="hidden w-28 md:table-cell">Price</TableHead>
+              <TableHead className="hidden w-28 md:table-cell">Stock</TableHead>
+              <TableHead className="hidden w-16 lg:table-cell">
+                Featured
+              </TableHead>
+              <TableHead className="hidden w-[140px] text-right sm:table-cell">
+                Actions
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {products.map((handle) => (
+              <ProductRow key={handle.documentId} {...handle} />
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
       {hasMore && (
@@ -126,27 +126,27 @@ function ProductListContent({
 function ProductListSkeleton() {
   return (
     <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-16">Image</TableHead>
-              <TableHead className="min-w-[150px]">Product</TableHead>
-              <TableHead className="w-28">Price</TableHead>
-              <TableHead className="w-28">Stock</TableHead>
-              <TableHead className="hidden w-16 sm:table-cell">
-                Featured
-              </TableHead>
-              <TableHead className="w-[180px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {[1, 2, 3, 4, 5].map((i) => (
-              <ProductRowSkeleton key={i} />
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="hidden w-16 sm:table-cell">Image</TableHead>
+            <TableHead>Product</TableHead>
+            <TableHead className="hidden w-28 md:table-cell">Price</TableHead>
+            <TableHead className="hidden w-28 md:table-cell">Stock</TableHead>
+            <TableHead className="hidden w-16 lg:table-cell">
+              Featured
+            </TableHead>
+            <TableHead className="hidden w-[140px] text-right sm:table-cell">
+              Actions
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <ProductRowSkeleton key={i} />
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
 }
