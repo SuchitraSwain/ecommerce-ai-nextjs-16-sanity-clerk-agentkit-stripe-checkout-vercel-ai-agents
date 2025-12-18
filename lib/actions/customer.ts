@@ -58,30 +58,68 @@ export async function getOrCreateStripeCustomer(
   }
 
   // Create or update customer in Sanity
-  if (existingCustomer) {
-    // Update existing Sanity customer with Stripe ID
-    await writeClient
-      .patch(existingCustomer._id)
-      .set({ stripeCustomerId, clerkUserId, name })
-      .commit();
+  if (!process.env.SANITY_API_WRITE_TOKEN) {
+    console.error(
+      "SANITY_API_WRITE_TOKEN is not set. Cannot create/update customer in Sanity."
+    );
+    // Return Stripe customer ID only - Sanity sync will happen later via webhook
     return {
       stripeCustomerId,
-      sanityCustomerId: existingCustomer._id,
+      sanityCustomerId: "", // Will be created by webhook
     };
   }
 
-  // Create new customer in Sanity
-  const newSanityCustomer = await writeClient.create({
-    _type: "customer",
-    email,
-    name,
-    clerkUserId,
-    stripeCustomerId,
-    createdAt: new Date().toISOString(),
-  });
+  try {
+    if (existingCustomer) {
+      // Update existing Sanity customer with Stripe ID
+      await writeClient
+        .patch(existingCustomer._id)
+        .set({ stripeCustomerId, clerkUserId, name })
+        .commit();
+      return {
+        stripeCustomerId,
+        sanityCustomerId: existingCustomer._id,
+      };
+    }
 
-  return {
-    stripeCustomerId,
-    sanityCustomerId: newSanityCustomer._id,
-  };
+    // Create new customer in Sanity
+    const newSanityCustomer = await writeClient.create({
+      _type: "customer",
+      email,
+      name,
+      clerkUserId,
+      stripeCustomerId,
+      createdAt: new Date().toISOString(),
+    });
+
+    return {
+      stripeCustomerId,
+      sanityCustomerId: newSanityCustomer._id,
+    };
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    const isAuthError =
+      errorMessage.includes("Session not found") ||
+      errorMessage.includes("Unauthorized") ||
+      errorMessage.includes("SIO-401");
+
+    if (isAuthError) {
+      console.error(
+        "❌ Sanity authentication failed. Please check your SANITY_API_WRITE_TOKEN environment variable."
+      );
+      console.error(
+        "   Make sure the token has Editor permissions in your Sanity project."
+      );
+    } else {
+      console.error("Failed to create/update customer in Sanity:", error);
+    }
+
+    // If Sanity write fails, still return Stripe customer ID
+    // The webhook can handle creating the Sanity customer later
+    return {
+      stripeCustomerId,
+      sanityCustomerId: existingCustomer?._id || "",
+    };
+  }
 }

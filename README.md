@@ -74,7 +74,7 @@ And store owners get:
 
 ✅ **Sanity CMS** with App SDK for real-time data mutations & live content updates!
 
-✅ **Vercel AI SDK** with AI Gateway for multi-provider LLM support (Claude, GPT, Cohere)!
+✅ **Vercel AI SDK** with Anthropic Claude Sonnet 4.5 for intelligent shopping assistance!
 
 ✅ **Stripe payments** with webhooks for secure checkout & order processing!
 
@@ -154,7 +154,7 @@ Join thousands of developers learning to build production-ready applications wit
 |---------|------------|----------------|
 | ⚡ **Real-time Updates** | Sanity Live + App SDK | Content changes appear instantly without refresh |
 | 🔐 **Authenticated AI** | Clerk AgentKit | AI assistant knows who you are and can access YOUR orders |
-| 🧠 **AI Gateway** | Vercel AI Gateway | Use Claude, GPT, or other models — easily swappable |
+| 🧠 **AI Assistant** | Anthropic Claude Sonnet 4.5 | Intelligent product search and order management |
 | 🛒 **Persisted Cart** | Zustand + localStorage | Cart survives page refreshes and browser restarts |
 | 📱 **Responsive Design** | Tailwind CSS + Shadcn/UI | Beautiful UI on any device |
 | ⚙️ **Type Safety** | TypeScript + Sanity TypeGen | Auto-generated types from your CMS schema |
@@ -237,7 +237,7 @@ Before you begin, ensure you have:
 - **Sanity Account** — [Create free account](https://www.sanity.io/sonny?utm_source=youtube&utm_medium=video&utm_content=ai-ecommerce-platform)
 - **Clerk Account** — [Create free account](https://go.clerk.com/uc48FAP)
 - **Stripe Account** — [Create account](https://stripe.com/)
-- **Vercel Account** — For AI Gateway access
+- **Anthropic Account** — For Claude API access (free tier available)
 
 ### Step-by-Step Setup
 
@@ -278,8 +278,8 @@ STRIPE_SECRET_KEY=Your_value_goes_here
 # stripe listen --forward-to localhost:3000/api/webhooks/stripe
 STRIPE_WEBHOOK_SECRET=Your_value_goes_here
 
-# Vercel
-AI_GATEWAY_API_KEY=Your_value_goes_here
+# Anthropic (for AI shopping assistant)
+ANTHROPIC_API_KEY=Your_value_goes_here
 ```
 
 > ⚠️ **Security Note**: Never commit `.env.local` to git. The `.gitignore` already excludes it.
@@ -359,7 +359,7 @@ This app uses **Sanity** as its headless CMS with the following document types:
 | `name` | string | Product name |
 | `slug` | slug | URL-friendly identifier |
 | `description` | text | Product description |
-| `price` | number | Price in GBP |
+| `price` | number | Price in EUR |
 | `category` | reference | Link to category |
 | `material` | string | wood, metal, fabric, leather, glass |
 | `color` | string | black, white, oak, walnut, grey, natural |
@@ -383,7 +383,7 @@ This app uses **Sanity** as its headless CMS with the following document types:
 |-------|------|-------------|
 | `orderNumber` | string | Unique order ID (e.g., ORD-ABC123) |
 | `items` | array | Products with quantity and price at purchase |
-| `total` | number | Order total in GBP |
+| `total` | number | Order total in EUR |
 | `status` | string | pending, paid, shipped, delivered, cancelled |
 | `customer` | reference | Link to customer record |
 | `clerkUserId` | string | Clerk user identifier |
@@ -587,7 +587,7 @@ vercel
 
 | Problem | Solution |
 |---------|----------|
-| "Gateway error" | Verify `AI_GATEWAY_API_KEY` is valid |
+| "API error" | Verify `ANTHROPIC_API_KEY` is valid and has credits |
 | Rate limiting | Implement request throttling or upgrade plan |
 | Wrong model response | Check model name in `shopping-agent.ts` |
 
@@ -623,23 +623,6 @@ Ready to level up? Try adding these features:
 - [ ] Add full-text search with Algolia
 
 ---
-
-## 📄 License
-
-This project is licensed under the **Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)**.
-
-### ✅ You CAN
-
-- Use this code for personal learning
-- Modify and adapt the code
-- Share with attribution
-- Use in portfolio projects
-
-### ❌ You CANNOT
-
-- Use for commercial purposes without permission
-- Sell this code or derivatives
-- Remove attribution
 
 ### 💼 Commercial Licensing
 

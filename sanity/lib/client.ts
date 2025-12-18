@@ -12,10 +12,18 @@ export const client = createClient({
 });
 
 // Write client (for mutations - used in webhooks/server actions)
+const writeToken = process.env.SANITY_API_WRITE_TOKEN;
+
+if (!writeToken) {
+  console.warn(
+    "⚠️  SANITY_API_WRITE_TOKEN is not set. Write operations to Sanity will fail."
+  );
+}
+
 export const writeClient = createClient({
   projectId,
   dataset,
   apiVersion,
   useCdn: false,
-  token: process.env.SANITY_API_WRITE_TOKEN,
+  token: writeToken,
 });
