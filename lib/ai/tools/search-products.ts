@@ -47,7 +47,7 @@ const productSearchSchema = z.object({
 
 export const searchProductsTool = tool({
   description:
-    "Search for products in the furniture store. Can search by name, description, or category, and filter by material, color, and price range. Returns product details including stock availability.",
+    "Search for products in the store. Can search by name, description, or category, and filter by material, color, and price range. Returns product details including stock availability.",
   inputSchema: productSearchSchema,
   execute: async ({ query, category, material, color, minPrice, maxPrice }) => {
     console.log("[SearchProducts] Query received:", {

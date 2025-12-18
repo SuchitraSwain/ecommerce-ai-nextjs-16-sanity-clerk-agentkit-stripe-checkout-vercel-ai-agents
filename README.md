@@ -473,7 +473,7 @@ export function createShoppingAgent({ userId }: { userId: string | null }) {
 ```typescript
 // lib/ai/tools/search-products.ts
 export const searchProductsTool = tool({
-  description: "Search for products in the furniture store",
+  description: "Search for products in the store",
   inputSchema: z.object({
     query: z.string().optional(),
     category: z.string().optional(),

@@ -13,6 +13,16 @@
  */
 
 // Source: schema.json
+export type SiteSettings = {
+  _id: string;
+  _type: "siteSettings";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  storeName?: string;
+  tagline?: string;
+};
+
 export type Order = {
   _id: string;
   _type: "order";
@@ -243,7 +253,7 @@ export type Geopoint = {
   alt?: number;
 };
 
-export type AllSanitySchemaTypes = Order | Product | SanityImageCrop | SanityImageHotspot | Slug | Customer | Category | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageMetadata | SanityFileAsset | SanityAssetSourceData | SanityImageAsset | Geopoint;
+export type AllSanitySchemaTypes = SiteSettings | Order | Product | SanityImageCrop | SanityImageHotspot | Slug | Customer | Category | SanityImagePaletteSwatch | SanityImagePalette | SanityImageDimensions | SanityImageMetadata | SanityFileAsset | SanityAssetSourceData | SanityImageAsset | Geopoint;
 export declare const internalGroqTypeReferenceTo: unique symbol;
 // Source: ./lib/sanity/queries/categories.ts
 // Variable: ALL_CATEGORIES_QUERY
@@ -651,6 +661,15 @@ export type AI_SEARCH_PRODUCTS_QUERYResult = Array<{
   assemblyRequired: boolean | null;
 }>;
 
+// Source: ./lib/sanity/queries/siteSettings.ts
+// Variable: SITE_SETTINGS_QUERY
+// Query: *[  _type == "siteSettings"][0]{  _id,  storeName,  tagline}
+export type SITE_SETTINGS_QUERYResult = {
+  _id: string;
+  storeName: string | null;
+  tagline: string | null;
+} | null;
+
 // Source: ./lib/sanity/queries/stats.ts
 // Variable: PRODUCT_COUNT_QUERY
 // Query: count(*[_type == "product"])
@@ -746,6 +765,7 @@ declare module "@sanity/client" {
     "*[\n  _type == \"product\"\n  && stock > 0\n  && stock <= 5\n] | order(stock asc) {\n  _id,\n  name,\n  \"slug\": slug.current,\n  stock,\n  \"image\": images[0]{\n    asset->{\n      _id,\n      url\n    }\n  }\n}": LOW_STOCK_PRODUCTS_QUERYResult;
     "*[\n  _type == \"product\"\n  && stock == 0\n] | order(name asc) {\n  _id,\n  name,\n  \"slug\": slug.current,\n  \"image\": images[0]{\n    asset->{\n      _id,\n      url\n    }\n  }\n}": OUT_OF_STOCK_PRODUCTS_QUERYResult;
     "*[\n  _type == \"product\"\n  && (\n    $searchQuery == \"\"\n    || name match $searchQuery + \"*\"\n    || description match $searchQuery + \"*\"\n    || category->title match $searchQuery + \"*\"\n  )\n  && ($categorySlug == \"\" || category->slug.current == $categorySlug)\n  && ($material == \"\" || material == $material)\n  && ($color == \"\" || color == $color)\n  && ($minPrice == 0 || price >= $minPrice)\n  && ($maxPrice == 0 || price <= $maxPrice)\n] | order(name asc) [0...20] {\n  _id,\n  name,\n  \"slug\": slug.current,\n  description,\n  price,\n  \"image\": images[0]{\n    asset->{\n      _id,\n      url\n    }\n  },\n  category->{\n    _id,\n    title,\n    \"slug\": slug.current\n  },\n  material,\n  color,\n  dimensions,\n  stock,\n  featured,\n  assemblyRequired\n}": AI_SEARCH_PRODUCTS_QUERYResult;
+    "*[\n  _type == \"siteSettings\"\n][0]{\n  _id,\n  storeName,\n  tagline\n}": SITE_SETTINGS_QUERYResult;
     "count(*[_type == \"product\"])": PRODUCT_COUNT_QUERYResult;
     "count(*[_type == \"order\"])": ORDER_COUNT_QUERYResult;
     "math::sum(*[\n  _type == \"order\"\n  && status in [\"paid\", \"shipped\", \"delivered\"]\n].total)": TOTAL_REVENUE_QUERYResult;

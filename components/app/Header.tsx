@@ -13,7 +13,11 @@ const isClerkConfigured =
   process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== "your-clerk-publishable-key-here" &&
   process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith("pk_");
 
-export function Header() {
+interface HeaderProps {
+  storeName?: string;
+}
+
+export function Header({ storeName = "Luna & Sol" }: HeaderProps) {
   const { openCart } = useCartActions();
   const { openChat } = useChatActions();
   const isChatOpen = useIsChatOpen();
@@ -25,7 +29,7 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-            The Furniture Store
+            {storeName}
           </span>
         </Link>
 
