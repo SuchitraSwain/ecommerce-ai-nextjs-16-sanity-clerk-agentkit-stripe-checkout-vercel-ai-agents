@@ -7,6 +7,12 @@ import { Button } from "@/components/ui/button";
 import { useCartActions, useTotalItems } from "@/lib/store/cart-store-provider";
 import { useChatActions, useIsChatOpen } from "@/lib/store/chat-store-provider";
 
+const isClerkConfigured =
+  typeof window !== "undefined" &&
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY !== "your-clerk-publishable-key-here" &&
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith("pk_");
+
 export function Header() {
   const { openCart } = useCartActions();
   const { openChat } = useChatActions();
@@ -25,15 +31,17 @@ export function Header() {
 
         {/* Actions */}
         <div className="flex items-center gap-2">
-          {/* My Orders - Only when signed in */}
-          <SignedIn>
-            <Button asChild>
-              <Link href="/orders" className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                <span className="text-sm font-medium">My Orders</span>
-              </Link>
-            </Button>
-          </SignedIn>
+          {/* My Orders - Only when signed in and Clerk is configured */}
+          {isClerkConfigured && (
+            <SignedIn>
+              <Button asChild>
+                <Link href="/orders" className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  <span className="text-sm font-medium">My Orders</span>
+                </Link>
+              </Button>
+            </SignedIn>
+          )}
 
           {/* AI Shopping Assistant */}
           {!isChatOpen && (
@@ -62,33 +70,37 @@ export function Header() {
             <span className="sr-only">Open cart ({totalItems} items)</span>
           </Button>
 
-          {/* User */}
-          <SignedIn>
-            <UserButton
-              afterSwitchSessionUrl="/"
-              appearance={{
-                elements: {
-                  avatarBox: "h-9 w-9",
-                },
-              }}
-            >
-              <UserButton.MenuItems>
-                <UserButton.Link
-                  label="My Orders"
-                  labelIcon={<Package className="h-4 w-4" />}
-                  href="/orders"
-                />
-              </UserButton.MenuItems>
-            </UserButton>
-          </SignedIn>
-          <SignedOut>
-            <SignInButton mode="modal">
-              <Button variant="ghost" size="icon">
-                <User className="h-5 w-5" />
-                <span className="sr-only">Sign in</span>
-              </Button>
-            </SignInButton>
-          </SignedOut>
+          {/* User - Only when Clerk is configured */}
+          {isClerkConfigured && (
+            <>
+              <SignedIn>
+                <UserButton
+                  afterSwitchSessionUrl="/"
+                  appearance={{
+                    elements: {
+                      avatarBox: "h-9 w-9",
+                    },
+                  }}
+                >
+                  <UserButton.MenuItems>
+                    <UserButton.Link
+                      label="My Orders"
+                      labelIcon={<Package className="h-4 w-4" />}
+                      href="/orders"
+                    />
+                  </UserButton.MenuItems>
+                </UserButton>
+              </SignedIn>
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <Button variant="ghost" size="icon">
+                    <User className="h-5 w-5" />
+                    <span className="sr-only">Sign in</span>
+                  </Button>
+                </SignInButton>
+              </SignedOut>
+            </>
+          )}
         </div>
       </div>
     </header>

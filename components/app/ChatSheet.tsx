@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useChat } from "@ai-sdk/react";
-import { useAuth } from "@clerk/nextjs";
 import { Sparkles, Send, Loader2, X, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +10,7 @@ import {
   useChatActions,
   usePendingMessage,
 } from "@/lib/store/chat-store-provider";
+import { useSafeAuth } from "@/lib/hooks/useSafeAuth";
 
 import {
   getMessageText,
@@ -24,7 +24,8 @@ export function ChatSheet() {
   const isOpen = useIsChatOpen();
   const { closeChat, clearPendingMessage } = useChatActions();
   const pendingMessage = usePendingMessage();
-  const { isSignedIn } = useAuth();
+  // ClerkProvider is always rendered, so useAuth will work
+  const { isSignedIn } = useSafeAuth();
   const [input, setInput] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
